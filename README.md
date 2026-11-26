@@ -2,7 +2,7 @@
 
 **Differentiable orthogonal transforms and fused spectral neural network operators.**
 
-Version 0.1.0 · research prototype · MIT
+Version 1.0.2 · research prototype · MIT
 
 SpectralOps provides a single PyTorch API for orthonormal transforms and learnable spectral filters, plus a JAX-native implementation and experimental custom GPU kernels. Its primary optimization target is the complete Hadamard spectral gate, not merely a standalone transform:
 
@@ -94,3 +94,29 @@ The JAX integration uses JAX primitives, not FFI bindings to the custom CUDA ker
 Dense WHT uses matrix multiplication (typically cuBLAS/cuBLASLt on NVIDIA GPU).
 
 Related implementations and documentation: [Fast Hadamard Transform](https://github.com/Dao-AILab/fast-hadamard-transform), [HadaCore](https://pytorch.org/blog/hadacore/), [Triton](https://triton-lang.org/), [PyTorch C++ extensions](https://docs.pytorch.org/docs/stable/cpp_extension.html), [JAX FFT](https://docs.jax.dev/en/latest/jax.scipy.fft.html). These are prior work and references, not code bundled into this library. Research novelty and package-name availability have not been established.
+
+V1.0.2 update:
+
+I just added 2D cone-adapted shearlets (Shearlet Wavelets) along with Shearlet gate.
+
+```python
+import torch
+import spectralops as so
+
+system = so.ShearletSystem((128, 128), scales=4)
+x = torch.randn(2, 3, 128, 128, requires_grad=True)
+c = so.shearlet2d(x, system, chunk_size=8)  # (2, 3, 37, 128, 128)
+x_hat = so.ishearlet2d(c, system, chunk_size=8)
+filters = system.filters                     # (37, 128, 128), FFT order
+kernels = system.spatial_kernels()           # centered spatial impulse responses
+layer = so.ShearletGate((128,128), scales=4, channels=3)
+layer(x).square().mean().backward()
+# On an NVIDIA GPU: shared weights, FP32 filter bank, experimental response kernels
+# layer = so.ShearletGate((128,128), scales=4, backend='triton').cuda()
+# y = layer(x.cuda())  # or backend='cuda'
+```
+
+The system is real, band-limited, undecimated and Parseval-normalized, not Gaussian directional masks or a compact-support ShearLab port. The fused gate avoids materializing the full coefficient tensor by reducing squared frequency masks with learned band weights; FFTs still use PyTorch/cuFFT.
+
+
+
