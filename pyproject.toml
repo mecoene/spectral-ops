@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spectralops"
+version = "0.1.0"
+description = "Differentiable orthogonal transforms and fused spectral operators"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["torch>=2.2"]
+license = {text = "MIT"}
+
+[project.optional-dependencies]
+triton = ["triton>=3.0; platform_system == 'Linux'"]
+jax = ["jax>=0.4.30"]
+dev = ["pytest>=7", "numpy", "scipy"]
+cuda = ["ninja"]
+
+[tool.setuptools.packages.find]
+include = ["spectralops*"]
+[tool.setuptools.package-data]
+spectralops = ["csrc/*.cu", "csrc/*.cpp"]
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
