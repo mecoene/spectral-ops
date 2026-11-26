@@ -6,7 +6,7 @@ Version 0.1.0 · research prototype · MIT
 
 SpectralOps provides a single PyTorch API for orthonormal transforms and learnable spectral filters, plus a JAX-native implementation and experimental custom GPU kernels. Its primary optimization target is the complete Hadamard spectral gate, not merely a standalone transform:
 
-$$y = H^T\operatorname{diag}(w)Hx$$
+$$y = H^T\mathrm{diag}(w)Hx$$
 
 The CUDA and Triton forward kernels execute both butterflies and spectral weighting in one kernel for each batch of rows, keeping intermediates in on-chip storage where the implementation and compiler permit. This is a design objective, not a measured GPU speedup. Backpropagation for input gradients reuses the same fused gate; weight gradients currently use PyTorch reference operations and a reduction.
 
